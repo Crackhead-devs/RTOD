@@ -91,7 +91,7 @@ function App() {
         ref={webcamRef}
         screenshotFormat="image/png"
         videoConstraints={{
-          facingMode: "user" // changed to 'user' to see if it works; change back to 'environment' if needed
+          facingMode: "environment" // changed to 'user' to see if it works; change back to 'environment' if needed
         }}
         style={{
           position: "absolute",
