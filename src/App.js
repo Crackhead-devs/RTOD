@@ -1,20 +1,29 @@
-// Import dependencies
 import React, { useRef, useState, useEffect } from "react";
 import * as tf from "@tensorflow/tfjs";
 import * as cocossd from "@tensorflow-models/coco-ssd";
 import Webcam from "react-webcam";
-import "./App.css";
+
 import { drawRect } from "./utilities";
 
 function App() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
+  const [devices, setDevices] = useState([]);
+  const [detectedObjects, setDetectedObjects] = useState([]);
+
+
+  // Function to get all video input devices
+  const getVideoInputDevices = async () => {
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+    setDevices(videoDevices);
+  };
 
   // Main function
   const runCoco = async () => {
     const net = await cocossd.load();
-    console.log("Handpose model loaded.");
-    //  Loop and detect hands
+    console.log("COCO-SSD model loaded.");
+    //  Loop and detect objects
     setInterval(() => {
       detect(net);
     }, 10);
@@ -32,7 +41,7 @@ function App() {
       const videoWidth = webcamRef.current.video.videoWidth;
       const videoHeight = webcamRef.current.video.videoHeight;
 
-      // Set video width
+      // Set video width and height
       webcamRef.current.video.width = videoWidth;
       webcamRef.current.video.height = videoHeight;
 
@@ -41,50 +50,73 @@ function App() {
       canvasRef.current.height = videoHeight;
 
       // Make Detections
-      const obj = await net.detect(video);
+      const objs = await net.detect(video);
+      setDetectedObjects(objs); // Store the detected objects in the state
 
-      // Draw mesh
+      // Draw detections
       const ctx = canvasRef.current.getContext("2d");
-      drawRect(obj, ctx); 
+      drawRect(objs, ctx);
     }
   };
 
-  useEffect(()=>{runCoco()},[]);
+  const capture = React.useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    // Download the image
+    downloadImage(imageSrc);
+    // Log detected objects and their locations
+    console.log("Detected objects:", detectedObjects);
+    detectedObjects.forEach(obj => {
+      console.log(`Label: ${obj.class}, Score: ${obj.score}, Location: `, obj.bbox);
+    });
+  }, [webcamRef, detectedObjects]);
+
+  const downloadImage = (imageSrc) => {
+    const downloadLink = document.createElement('a');
+    downloadLink.href = imageSrc;
+    downloadLink.download = 'captured.png';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+  };
+
+  useEffect(() => {
+    getVideoInputDevices();
+    runCoco();
+  }, []);
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <Webcam
-          ref={webcamRef}
-          muted={true} 
-          style={{
-            position: "absolute",
-            marginLeft: "auto",
-            marginRight: "auto",
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            zindex: 9,
-            width: 640,
-            height: 480,
-          }}
-        />
+    <div className="App" style={{ width: '100%', height: '100%' }}>
+      <Webcam
+        audio={false}
+        ref={webcamRef}
+        screenshotFormat="image/png"
+        videoConstraints={{
+          facingMode: "user" // changed to 'user' to see if it works; change back to 'environment' if needed
+        }}
+        style={{
+          position: "absolute",
+         
+        }}
+      />
 
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: "absolute",
-            marginLeft: "auto",
-            marginRight: "auto",
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            zindex: 8,
-            width: 640,
-            height: 480,
-          }}
-        />
-      </header>
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: "absolute",
+         
+          
+        }}
+      />
+
+      <button onClick={capture} style={{
+          position: "fixed",
+          bottom: 20,
+          zIndex: 20,
+          left: "50%",
+          transform: "translateX(-50%)"
+        }}>
+        Capture photo
+      </button>
     </div>
   );
 }
