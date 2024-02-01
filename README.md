@@ -1,3 +1,7 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/27677c7b-e231-4e59-93f5-783926595483/deploy-status)](https://app.netlify.com/sites/vermillion-gecko-78f655/deploys)
+Netlify status
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
