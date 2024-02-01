@@ -1,5 +1,5 @@
 # Netlify Status Widget
-Pushes to domain [dev.togun.eu](dev.togun.eu)
+Pushes to domain [dev.togun.eu](https://dev.togun.eu)
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/27677c7b-e231-4e59-93f5-783926595483/deploy-status)](https://app.netlify.com/sites/vermillion-gecko-78f655/deploys)
 
